@@ -36,7 +36,17 @@ TAMIL_NAMES = {
     "Cuddalore": "கடலூர்",
     "Vellore": "வேலூர்",
     "Tiruvallur": "திருவள்ளூர்",
-    "Ramanathapuram": "ராமநாதபுரம்"
+    "Ramanathapuram": "ராமநாதபுரம்",
+    "Virudhunagar": "விருதுநகர்",
+    "Theni": "தேனி",
+    "Kanniyakumari": "கன்னியாகுமரி",
+    "Sivaganga": "சிவகங்கை",
+    "Dharmapuri": "தருமபுரி",
+    "Tiruvannamalai": "திருவண்ணாமலை",
+    "Pudukkottai": "புதுக்கோட்டை",
+    "Thiruvallur": "திருவள்ளூர்",
+    "Tiruchchirappalli": "திருச்சிராப்பள்ளி",
+    "Tirunelveli Kattabo": "திருநெல்வேலி"
 }
 
 def init_gee():
