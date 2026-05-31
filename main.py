@@ -11,7 +11,7 @@ app = FastAPI()
 
 CACHE = {
     "rows": None,
-    "updated": 0
+    "updated": 0,
     "tamil_report": ""
 }
 
