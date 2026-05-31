@@ -4,40 +4,16 @@ import tempfile
 import time
 import ee
 from fastapi import FastAPI
-from datetime import datetime
-from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
 CACHE = {
     "rows": None,
     "updated": 0
-    "tamil_report": ""
 }
 
 CACHE_SECONDS = 6 * 60 * 60  # 6 hours
 
-TAMIL_NAMES = {
-    "Chennai": "சென்னை",
-    "Coimbatore": "கோயம்புத்தூர்",
-    "Madurai": "மதுரை",
-    "Salem": "சேலம்",
-    "Erode": "ஈரோடு",
-    "Tiruchirappalli": "திருச்சிராப்பள்ளி",
-    "Thanjavur": "தஞ்சாவூர்",
-    "Tirunelveli": "திருநெல்வேலி",
-    "Thoothukudi": "தூத்துக்குடி",
-    "Virudunagar": "விருதுநகர்",
-    "Dindigul": "திண்டுக்கல்",
-    "Karur": "கரூர்",
-    "Namakkal": "நாமக்கல்",
-    "Nilgiris": "நீலகிரி",
-    "Kancheepuram": "காஞ்சிபுரம்",
-    "Cuddalore": "கடலூர்",
-    "Vellore": "வேலூர்",
-    "Tiruvallur": "திருவள்ளூர்",
-    "Ramanathapuram": "ராமநாதபுரம்"
-}
 
 def init_gee():
     service_account = os.environ["GEE_SERVICE_ACCOUNT"]
@@ -61,7 +37,7 @@ def startup():
 def home():
     return {
         "status": "Render + Earth Engine running",
-        "endpoints": ["/stress", "/stress-compact", "/report", "/refresh"]
+        "endpoints": ["/stress", "/stress-compact", "/refresh"]
     }
 
 
@@ -197,86 +173,16 @@ def compute_stress():
 
     return rows
 
-def build_tamil_report(rows):
-
-    lines = []
-
-    lines.append("தமிழ்நாடு மாவட்ட நீரழுத்த அறிக்கை")
-    lines.append("")
-
-    lines.append(
-        f"அறிக்கை தேதி: "
-        f"{datetime.now().strftime('%d-%m-%Y %H:%M')}"
-    )
-
-    lines.append("")
-
-    lines.append(
-        "கணக்கீட்டு காலம்:"
-    )
-
-    lines.append(
-        "01-01-2026 முதல் 31-03-2026 வரை"
-    )
-
-    lines.append("")
-
-    if len(rows) > 0:
-
-        highest = rows[0]
-
-        lines.append(
-            f"அதிக நீரழுத்தம்:"
-        )
-
-        lines.append(
-            f"{highest['district']} "
-            f"({highest['high_pct']}%)"
-        )
-
-        lines.append("")
-
-    lines.append("மாவட்ட வாரியான நிலை:")
-    lines.append("")
-
-    for r in rows:
-
-        district = TAMIL_NAMES.get(
-            r["district"],
-            r["district"]
-        )
-
-        lines.append(
-            f"{district} - "
-            f"{r['high_pct']}%"
-        )
-
-    lines.append("")
-    lines.append(
-        "தரவு மூலம்: Sentinel-1 SAR மற்றும் Google Earth Engine"
-    )
-
-    return "<br>".join(lines)
 
 def get_cached_rows(force=False):
-
     now = time.time()
 
-    if (
-        force
-        or CACHE["rows"] is None
-        or now - CACHE["updated"] > CACHE_SECONDS
-    ):
-
-        rows = compute_stress()
-
-        CACHE["rows"] = rows
+    if force or CACHE["rows"] is None or now - CACHE["updated"] > CACHE_SECONDS:
+        CACHE["rows"] = compute_stress()
         CACHE["updated"] = now
 
-        CACHE["tamil_report"] = build_tamil_report(rows)
-
     return CACHE["rows"]
-    
+
 
 @app.get("/stress")
 def stress():
@@ -301,62 +207,7 @@ def stress_compact():
 
     return compact
 
-@app.get("/report")
-def report():
 
-    get_cached_rows()
-
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-
-        <title>
-        தமிழ்நாடு நீரழுத்த அறிக்கை
-        </title>
-
-        <style>
-
-        body {{
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            line-height: 1.8;
-            background: #f8f9fa;
-        }}
-
-        .card {{
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }}
-
-        h1 {{
-            color: #1565C0;
-        }}
-
-        </style>
-    </head>
-
-    <body>
-
-        <div class="card">
-
-            <h1>
-            தமிழ்நாடு நீரழுத்த அறிக்கை
-            </h1>
-
-            {CACHE["tamil_report"]}
-
-        </div>
-
-    </body>
-    </html>
-    """
-
-    return HTMLResponse(content=html)
-    
 @app.get("/refresh")
 def refresh():
     rows = get_cached_rows(force=True)
